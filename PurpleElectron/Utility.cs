@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Text;
 
+using CSCore.CoreAudioAPI;
+
 namespace PurpleElectron {
 	internal class Utility {
 		public const int HWND_BROADCAST = 0xffff;
@@ -86,6 +88,19 @@ namespace PurpleElectron {
 			}
 
 			return shortPath.ToString();
+		}
+
+		public static DataFlow GetDataFlow(MMDevice device) {
+
+			using (var enumerator = new MMDeviceEnumerator()) 
+			using (var devices = enumerator.EnumAudioEndpoints(DataFlow.Capture, DeviceState.Active)) {
+				foreach (var dev in devices) {
+					if (dev.DeviceID == device.DeviceID)
+						return DataFlow.Capture;
+				}
+			}
+
+			return DataFlow.Render;
 		}
 	}
 }
