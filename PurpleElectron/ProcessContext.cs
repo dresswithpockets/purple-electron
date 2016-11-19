@@ -46,7 +46,12 @@ namespace PurpleElectron {
 		private ConfigEditor editor;
 
 		public ProcessContext() {
+			Debug.WriteLine("Registering devices");
+			Config.RegisterChannelType("Device Capture", ChannelType.DeviceCapture, typeof(DeviceCaptureChannel));
+			Debug.WriteLine("Loading config");
 			Config.LoadConfig();
+
+			Debug.WriteLine("Initializing context resources");
 
 			captureItem = new MenuItem("Capture", Capture);
 			editor = new ConfigEditor {
