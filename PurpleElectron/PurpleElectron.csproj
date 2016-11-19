@@ -86,6 +86,12 @@
     <Reference Include="VIBlend.WinForms.Utilities, Version=10.1.0.0, Culture=neutral, PublicKeyToken=970a5af59bc48043" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AboutPurpleElectron.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AboutPurpleElectron.Designer.cs">
+      <DependentUpon>AboutPurpleElectron.cs</DependentUpon>
+    </Compile>
     <Compile Include="Channel.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConfigEditor.cs">
@@ -99,6 +105,9 @@
     <Compile Include="ProcessContext.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="AboutPurpleElectron.resx">
+      <DependentUpon>AboutPurpleElectron.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ConfigEditor.resx">
       <DependentUpon>ConfigEditor.cs</DependentUpon>
     </EmbeddedResource>
@@ -131,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\icon.ico" />
+    <None Include="Resources\icon1.png" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
@@ -144,6 +154,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
