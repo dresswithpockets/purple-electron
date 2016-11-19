@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.Text;
 using System.Linq;
 using System.Diagnostics;
 
@@ -58,6 +59,8 @@ namespace PurpleElectron {
 		public static DirectoryInfo SavePath = DefaultDirectoryInfo;
 		public static string SaveNameFormat = "MM-dd-yyyy - hh-mm-ss";
 
+		public static Dictionary<ChannelType, ChannelTypeItem> RegisteredChannels = new Dictionary<ChannelType, ChannelTypeItem>();
+
 		private static DirectoryInfo DefaultDirectoryInfo {
 			get {
 				if (!Directory.Exists("save/")) return Directory.CreateDirectory("save/");
@@ -88,6 +91,12 @@ namespace PurpleElectron {
 		public static MMDevice GetDefaultRenderDevice() {
 			using (MMDeviceEnumerator enumerator = new MMDeviceEnumerator()) {
 				return enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+			}
+		}
+
+		public static void RegisterChannelType(string name, ChannelType channelType, Type type) {
+			if (!RegisteredChannels.ContainsKey(channelType)) {
+				RegisteredChannels.Add(channelType, new ChannelTypeItem(name, channelType, type));
 			}
 		}
 
@@ -189,6 +198,40 @@ namespace PurpleElectron {
 
 		public override string ToString() {
 			return Device.FriendlyName;
+		}
+	}
+
+	public class ChannelItem {
+
+		public bool Enabled;
+		public IChannel Channel { get; }
+
+		public ChannelItem(IChannel channel) {
+			Channel = channel;
+			Enabled = true;
+		}
+
+		public override string ToString() {
+			var enable = Enabled ? "(Enabled) " : "(Disabled) ";
+
+			return enable + Channel.channelName;
+		}
+	}
+
+	public class ChannelTypeItem {
+
+		public string channelTypeName { get; }
+		public ChannelType channelType { get; }
+		public Type objectType { get; }
+
+		public ChannelTypeItem(string friendlyName, ChannelType type, Type objType) {
+			channelTypeName = friendlyName;
+			channelType = type;
+			objectType = objType;
+		}
+
+		public override string ToString() {
+			return channelTypeName;
 		}
 	}
 }
