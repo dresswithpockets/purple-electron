@@ -226,16 +226,62 @@ namespace PurpleElectron {
 		}
 
 		public void SaveData() {
-			if (storeInMemoryUntilSave) {
-				
-				//TODO: concatenate the data stored in memory (MemoryA and MemoryB) and store it in a file
-				
-			}
-			else {
+			// TODO: Add support for other formats (see: OutputFormat)
 
-				// TODO: merge the two files and save it
+			var dataA = (currentFile == 0 ? channelMemoryB : channelMemoryA).ToArray();
+			var dataB = (currentFile == 1 ? channelMemoryB : channelMemoryA).ToArray();
 
+			if (!storeInMemoryUntilSave) {
+				var bytesA = Utility.ReadToEnd((currentFile == 0) ? channelStreamB : channelStreamA);
+				var bytesB = Utility.ReadToEnd((currentFile == 1) ? channelStreamB : channelStreamA);
+
+				dataA = bytesA.Skip(44).ToArray();
+				dataB = bytesB.Skip(44).ToArray();
 			}
+
+			using (var writer = new WaveWriter(Config.SavePath.FullName + "/" + DateTime.Now.ToString(Config.SaveNameFormat) + ".wav", channelCapture.WaveFormat)) {
+				writer.Write(dataA, 0, dataA.Length);
+				writer.Write(dataB, 0, dataB.Length);
+			}
+
+			/*var chunk1_size = 16;
+			var format = (short)channelDevice.DeviceFormat.WaveFormatTag;
+
+			var channels = (short)channelDevice.DeviceFormat.Channels;
+			var rate = channelDevice.DeviceFormat.SampleRate;
+			var byteRate = channelDevice.DeviceFormat.BytesPerSecond;
+			var align = (short)channelDevice.DeviceFormat.BlockAlign;
+			var bitsPerSample = (short)channelDevice.DeviceFormat.BitsPerSample;
+
+			var lengthA = dataA.Length;
+			var lengthB = dataB.Length;
+
+			// We're doing hardcore byte concatenation since the output
+			// temp files (a.wav and b.wav) are both uncompressed raw data.
+			//
+			// ... when more than WAV is introduced, we'll have to do this for all of the supported
+			// file types.
+			using (var file = File.Create(Config.SavePath.FullName + "/" + DateTime.Now.ToString(Config.SaveNameFormat) + ".wav"))
+			using (BinaryWriter bw = new BinaryWriter(file)) {
+				bw.Write(Encoding.ASCII.GetBytes("RIFF")); // chunk id
+				bw.Write(4 + (8 + chunk1_size) + (8 + lengthA + lengthB)); // chunk size
+				bw.Write(Encoding.ASCII.GetBytes("WAVE")); // format
+				bw.Write(Encoding.ASCII.GetBytes("fmt ")); // sub chunk 1 id
+				bw.Write(chunk1_size); // sub chunk 1 size
+				bw.Write(format); // audio format
+				bw.Write(channels); // num channels
+				bw.Write(rate); // sample rate
+				bw.Write(byteRate); // byte rate
+				bw.Write(align); // block align
+				bw.Write(bitsPerSample); // bits per sample
+				bw.Write(Encoding.ASCII.GetBytes("data")); // sub chunk 2 id
+				bw.Write(lengthA + lengthB); // sub chunk 2 size
+				bw.Write(dataA); // first part of Data
+				bw.Write(dataB); // last part of Data
+
+				bw.Flush();
+				bw.Close();
+			}*/
 		}
 
 		public DeviceCaptureChannel(string name, OutputFormat fmt = OutputFormat.WAV) {
