@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Purple Electron")]
-[assembly: AssemblyDescription("Retroactive audio recording.")]
+[assembly: AssemblyDescription("ShadowPlay-esque retroactive audio recording.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Tristen Horton")]
 [assembly: AssemblyProduct("Purple Electron")]
 [assembly: AssemblyCopyright("Copyright © Tristen Horton 2016")]
 [assembly: AssemblyTrademark("")]
