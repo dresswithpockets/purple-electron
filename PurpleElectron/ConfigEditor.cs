@@ -23,6 +23,8 @@ namespace PurpleElectron {
 
 		private bool restartRequired = false;
 
+		private ContextMenu addButtonMenu;
+
 		public ConfigEditor() {
 			InitializeComponent();
 
@@ -57,16 +59,10 @@ namespace PurpleElectron {
 			latestShortcutKeys = Config.CaptureShortcut.keys;
 			captureShortcutButton.Text = latestShortcutKeys.ToString();
 
-			cacheLengthNumber.Value = Config.CacheLength;
-
 			RefreshDevices();
 			
 			saveSettingsButton.Enabled = false;
 			restartRequired = false;
-
-			microphoneDeviceComboBox.Enabled = false;
-			systemDeviceComboBox.Enabled = false;
-			refreshDevicesButton.Enabled = false;
 		}
 
 		private void browseButton_Click(object sender, EventArgs e) {
@@ -98,27 +94,9 @@ namespace PurpleElectron {
 			captureShortcutButton.Text = "Press some keys... (Press escape to cancel)";
 		}
 
-		private void cacheLengthNumber_ValueChanged(object sender, VIBlend.WinForms.Controls.ValueChangedEditorEventArgs args) {
-			if (cacheLengthNumber.Value < 1) cacheLengthNumber.Value = 1;
-
-			if (cacheLengthNumber.Value <= 5) {
-				cacheLengthNoteB.Text = "Warning! Having this set to a low value is unpredictable. This may cause undefined behaviour.";
-			}
-			else if (cacheLengthNumber.Value >= 900) {
-				cacheLengthNoteB.Text = "Warning! Having a large cache length will cause large file sizes and may be unpredictable if your drive space is low.";
-			}
-			else {
-				cacheLengthNoteB.Text = " ";
-			}
-
-			restartRequired = true;
-            saveSettingsButton.Enabled = true;
-		}
-
 		private void cancelButton_Click(object sender, EventArgs e) {
 			outputFolderTextBox.Text = Config.SavePath.FullName;
 			captureShortcutButton.Text = (latestShortcutKeys = Config.CaptureShortcut.keys).ToString();
-			cacheLengthNumber.Value = Config.CacheLength;
 
 			saveSettingsButton.Enabled = false;
 			this.Visible = false;
@@ -175,7 +153,6 @@ namespace PurpleElectron {
 						case "Discard changes":
 							outputFolderTextBox.Text = Config.SavePath.FullName;
 							captureShortcutButton.Text = (latestShortcutKeys = Config.CaptureShortcut.keys).ToString();
-							cacheLengthNumber.Value = Config.CacheLength;
 							break;
 					}
 					
@@ -216,7 +193,7 @@ namespace PurpleElectron {
 		}
 
 		private void RefreshDevices() {
-			systemDeviceComboBox.Items.Clear();
+			/*systemDeviceComboBox.Items.Clear();
 			microphoneDeviceComboBox.Items.Clear();
 
 			using (var deviceEnum = new MMDeviceEnumerator())
@@ -250,19 +227,13 @@ namespace PurpleElectron {
 						break;
 					}
 				}
-			}
+			}*/
 		}
 
 		private void ShortSave() {
 
 			Config.SavePath = new System.IO.DirectoryInfo(outputFolderTextBox.Text);
 			Config.CaptureShortcut = new KeyShortcut(latestShortcutKeys, shiftCheckBox.Checked, ctrlCheckBox.Checked, altCheckBox.Checked);
-			Config.CacheLength = (int)cacheLengthNumber.Value;
-
-			if (microphoneDeviceComboBox.SelectedItem != null)
-				Config.CaptureDevice = (microphoneDeviceComboBox.SelectedItem as DeviceItem).Device;
-			if (systemDeviceComboBox.SelectedItem != null)
-				Config.RenderDevice = (systemDeviceComboBox.SelectedItem as DeviceItem).Device;
 
 			Config.SaveConfig();
 		}
@@ -297,6 +268,32 @@ namespace PurpleElectron {
 				context.Capture(this, null);
 				e.Handled = true;
 			}
+		}
+
+		private void aboutButton_Click(object sender, EventArgs e) {
+			using (var about = new AboutPurpleElectron()) {
+				about.Show(this);
+			}
+		}
+
+		private void AddChannel(ChannelTypeItem channel) {
+			// TODO: Actually add the channel to the list of active channels
+		}
+
+		private void addChannelButton_Click(object sender, EventArgs e) {
+			var vals = Config.RegisteredChannels.Values.ToArray();
+			var channelTypes = new MenuItem[vals.Length];
+            for (int i = 0; i < vals.Length; i++) {
+				var val = vals[i];
+				channelTypes[i] = new MenuItem(val.channelTypeName, (_s, _e) => AddChannel(val));
+			}
+			addButtonMenu = new ContextMenu(channelTypes);
+
+			addButtonMenu.Show(addChannelButton, addChannelButton.PointToClient(Cursor.Position));
+		}
+
+		private void deleteChannelButton_Click(object sender, EventArgs e) {
+
 		}
 	}
 }

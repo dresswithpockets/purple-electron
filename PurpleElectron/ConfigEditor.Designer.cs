@@ -36,26 +36,22 @@
 			this.outputFolderTextBox = new VIBlend.WinForms.Controls.vTextBox();
 			this.outputFolderLabel = new VIBlend.WinForms.Controls.vLabel();
 			this.captureTabPage = new VIBlend.WinForms.Controls.vTabPage();
-			this.refreshDevicesButton = new VIBlend.WinForms.Controls.vButton();
-			this.microphoneDeviceComboBox = new System.Windows.Forms.ComboBox();
-			this.systemDeviceComboBox = new System.Windows.Forms.ComboBox();
-			this.microphoneDeviceLabel = new VIBlend.WinForms.Controls.vLabel();
-			this.systemDeviceLabel = new VIBlend.WinForms.Controls.vLabel();
-			this.cacheLengthNumber = new VIBlend.WinForms.Controls.vNumberEditor();
+			this.deleteChannelButton = new VIBlend.WinForms.Controls.vButton();
+			this.addChannelButton = new VIBlend.WinForms.Controls.vButton();
+			this.channelsLabel = new VIBlend.WinForms.Controls.vLabel();
+			this.channelListBox = new VIBlend.WinForms.Controls.vListBox();
 			this.altLabel = new VIBlend.WinForms.Controls.vLabel();
 			this.ctrlLabel = new VIBlend.WinForms.Controls.vLabel();
 			this.altCheckBox = new VIBlend.WinForms.Controls.vCheckBox();
 			this.shiftLabel = new VIBlend.WinForms.Controls.vLabel();
 			this.ctrlCheckBox = new VIBlend.WinForms.Controls.vCheckBox();
 			this.shiftCheckBox = new VIBlend.WinForms.Controls.vCheckBox();
-			this.cacheLengthNoteB = new VIBlend.WinForms.Controls.vLabel();
-			this.cacheLengthNoteA = new VIBlend.WinForms.Controls.vLabel();
-			this.cacheLengthLabel = new VIBlend.WinForms.Controls.vLabel();
 			this.captureShortcutLabel = new VIBlend.WinForms.Controls.vLabel();
 			this.captureShortcutButton = new VIBlend.WinForms.Controls.vButton();
 			this.outputFolderBrowseDialog = new Ookii.Dialogs.VistaFolderBrowserDialog();
 			this.cancelButton = new VIBlend.WinForms.Controls.vButton();
 			this.saveSettingsButton = new VIBlend.WinForms.Controls.vButton();
+			this.aboutButton = new VIBlend.WinForms.Controls.vButton();
 			this.configTabs.SuspendLayout();
 			this.outputTabPage.SuspendLayout();
 			this.captureTabPage.SuspendLayout();
@@ -218,21 +214,16 @@
 			// 
 			// captureTabPage
 			// 
-			this.captureTabPage.Controls.Add(this.refreshDevicesButton);
-			this.captureTabPage.Controls.Add(this.microphoneDeviceComboBox);
-			this.captureTabPage.Controls.Add(this.systemDeviceComboBox);
-			this.captureTabPage.Controls.Add(this.microphoneDeviceLabel);
-			this.captureTabPage.Controls.Add(this.systemDeviceLabel);
-			this.captureTabPage.Controls.Add(this.cacheLengthNumber);
+			this.captureTabPage.Controls.Add(this.deleteChannelButton);
+			this.captureTabPage.Controls.Add(this.addChannelButton);
+			this.captureTabPage.Controls.Add(this.channelsLabel);
+			this.captureTabPage.Controls.Add(this.channelListBox);
 			this.captureTabPage.Controls.Add(this.altLabel);
 			this.captureTabPage.Controls.Add(this.ctrlLabel);
 			this.captureTabPage.Controls.Add(this.altCheckBox);
 			this.captureTabPage.Controls.Add(this.shiftLabel);
 			this.captureTabPage.Controls.Add(this.ctrlCheckBox);
 			this.captureTabPage.Controls.Add(this.shiftCheckBox);
-			this.captureTabPage.Controls.Add(this.cacheLengthNoteB);
-			this.captureTabPage.Controls.Add(this.cacheLengthNoteA);
-			this.captureTabPage.Controls.Add(this.cacheLengthLabel);
 			this.captureTabPage.Controls.Add(this.captureShortcutLabel);
 			this.captureTabPage.Controls.Add(this.captureShortcutButton);
 			this.captureTabPage.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -249,107 +240,64 @@
 			this.captureTabPage.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.BLACKPEARL;
 			this.captureTabPage.Visible = false;
 			// 
-			// refreshDevicesButton
+			// deleteChannelButton
 			// 
-			this.refreshDevicesButton.AllowAnimations = true;
-			this.refreshDevicesButton.BackColor = System.Drawing.Color.Transparent;
-			this.refreshDevicesButton.Location = new System.Drawing.Point(381, 249);
-			this.refreshDevicesButton.Name = "refreshDevicesButton";
-			this.refreshDevicesButton.RoundedCornersMask = ((byte)(15));
-			this.refreshDevicesButton.Size = new System.Drawing.Size(159, 22);
-			this.refreshDevicesButton.TabIndex = 4;
-			this.refreshDevicesButton.Text = "Refresh Devices";
-			this.refreshDevicesButton.UseVisualStyleBackColor = false;
-			this.refreshDevicesButton.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
-			this.refreshDevicesButton.Click += new System.EventHandler(this.refreshDevicesButton_Click);
+			this.deleteChannelButton.AllowAnimations = true;
+			this.deleteChannelButton.BackColor = System.Drawing.Color.Transparent;
+			this.deleteChannelButton.Location = new System.Drawing.Point(529, 125);
+			this.deleteChannelButton.Name = "deleteChannelButton";
+			this.deleteChannelButton.RoundedCornersMask = ((byte)(15));
+			this.deleteChannelButton.RoundedCornersRadius = 0;
+			this.deleteChannelButton.Size = new System.Drawing.Size(30, 30);
+			this.deleteChannelButton.TabIndex = 15;
+			this.deleteChannelButton.Text = "➖";
+			this.deleteChannelButton.UseVisualStyleBackColor = false;
+			this.deleteChannelButton.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.OFFICE2010SILVER;
+			this.deleteChannelButton.Click += new System.EventHandler(this.deleteChannelButton_Click);
 			// 
-			// microphoneDeviceComboBox
+			// addChannelButton
 			// 
-			this.microphoneDeviceComboBox.FormattingEnabled = true;
-			this.microphoneDeviceComboBox.Location = new System.Drawing.Point(149, 215);
-			this.microphoneDeviceComboBox.Name = "microphoneDeviceComboBox";
-			this.microphoneDeviceComboBox.Size = new System.Drawing.Size(391, 28);
-			this.microphoneDeviceComboBox.TabIndex = 15;
-			this.microphoneDeviceComboBox.SelectedIndexChanged += new System.EventHandler(this.microphoneDeviceComboBox_SelectedIndexChanged);
+			this.addChannelButton.AllowAnimations = true;
+			this.addChannelButton.BackColor = System.Drawing.Color.Transparent;
+			this.addChannelButton.Location = new System.Drawing.Point(529, 96);
+			this.addChannelButton.Name = "addChannelButton";
+			this.addChannelButton.RoundedCornersMask = ((byte)(15));
+			this.addChannelButton.RoundedCornersRadius = 0;
+			this.addChannelButton.Size = new System.Drawing.Size(30, 30);
+			this.addChannelButton.TabIndex = 14;
+			this.addChannelButton.Text = "➕";
+			this.addChannelButton.UseVisualStyleBackColor = false;
+			this.addChannelButton.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.OFFICE2010SILVER;
+			this.addChannelButton.Click += new System.EventHandler(this.addChannelButton_Click);
 			// 
-			// systemDeviceComboBox
+			// channelsLabel
 			// 
-			this.systemDeviceComboBox.FormattingEnabled = true;
-			this.systemDeviceComboBox.Location = new System.Drawing.Point(149, 173);
-			this.systemDeviceComboBox.Name = "systemDeviceComboBox";
-			this.systemDeviceComboBox.Size = new System.Drawing.Size(391, 28);
-			this.systemDeviceComboBox.TabIndex = 14;
-			this.systemDeviceComboBox.SelectedIndexChanged += new System.EventHandler(this.systemDeviceComboBox_SelectedIndexChanged);
+			this.channelsLabel.BackColor = System.Drawing.Color.Transparent;
+			this.channelsLabel.DisplayStyle = VIBlend.WinForms.Controls.LabelItemStyle.TextOnly;
+			this.channelsLabel.Ellipsis = false;
+			this.channelsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.channelsLabel.ForeColor = System.Drawing.SystemColors.Control;
+			this.channelsLabel.ImageAlignment = System.Drawing.ContentAlignment.TopLeft;
+			this.channelsLabel.Location = new System.Drawing.Point(7, 65);
+			this.channelsLabel.Multiline = true;
+			this.channelsLabel.Name = "channelsLabel";
+			this.channelsLabel.Size = new System.Drawing.Size(136, 25);
+			this.channelsLabel.TabIndex = 5;
+			this.channelsLabel.Text = "Channels";
+			this.channelsLabel.TextAlignment = System.Drawing.ContentAlignment.TopLeft;
+			this.channelsLabel.UseMnemonics = true;
+			this.channelsLabel.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
 			// 
-			// microphoneDeviceLabel
+			// channelListBox
 			// 
-			this.microphoneDeviceLabel.BackColor = System.Drawing.Color.Transparent;
-			this.microphoneDeviceLabel.DisplayStyle = VIBlend.WinForms.Controls.LabelItemStyle.TextOnly;
-			this.microphoneDeviceLabel.Ellipsis = false;
-			this.microphoneDeviceLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.microphoneDeviceLabel.ForeColor = System.Drawing.SystemColors.Control;
-			this.microphoneDeviceLabel.ImageAlignment = System.Drawing.ContentAlignment.TopLeft;
-			this.microphoneDeviceLabel.Location = new System.Drawing.Point(7, 218);
-			this.microphoneDeviceLabel.Multiline = true;
-			this.microphoneDeviceLabel.Name = "microphoneDeviceLabel";
-			this.microphoneDeviceLabel.Size = new System.Drawing.Size(136, 25);
-			this.microphoneDeviceLabel.TabIndex = 7;
-			this.microphoneDeviceLabel.Text = "Microphone:";
-			this.microphoneDeviceLabel.TextAlignment = System.Drawing.ContentAlignment.TopLeft;
-			this.microphoneDeviceLabel.UseMnemonics = true;
-			this.microphoneDeviceLabel.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
-			// 
-			// systemDeviceLabel
-			// 
-			this.systemDeviceLabel.BackColor = System.Drawing.Color.Transparent;
-			this.systemDeviceLabel.DisplayStyle = VIBlend.WinForms.Controls.LabelItemStyle.TextOnly;
-			this.systemDeviceLabel.Ellipsis = false;
-			this.systemDeviceLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.systemDeviceLabel.ForeColor = System.Drawing.SystemColors.Control;
-			this.systemDeviceLabel.ImageAlignment = System.Drawing.ContentAlignment.TopLeft;
-			this.systemDeviceLabel.Location = new System.Drawing.Point(7, 175);
-			this.systemDeviceLabel.Multiline = true;
-			this.systemDeviceLabel.Name = "systemDeviceLabel";
-			this.systemDeviceLabel.Size = new System.Drawing.Size(136, 25);
-			this.systemDeviceLabel.TabIndex = 6;
-			this.systemDeviceLabel.Text = "System Device: ";
-			this.systemDeviceLabel.TextAlignment = System.Drawing.ContentAlignment.TopLeft;
-			this.systemDeviceLabel.UseMnemonics = true;
-			this.systemDeviceLabel.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
-			// 
-			// cacheLengthNumber
-			// 
-			this.cacheLengthNumber.BackColor = System.Drawing.Color.White;
-			this.cacheLengthNumber.BoundsOffset = new System.Drawing.Size(1, 1);
-			this.cacheLengthNumber.ControlBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(39)))), ((int)(((byte)(39)))), ((int)(((byte)(39)))));
-			this.cacheLengthNumber.CultureInfo = new System.Globalization.CultureInfo("en-US");
-			this.cacheLengthNumber.DecimalPlaces = 0;
-			this.cacheLengthNumber.DefaultText = "Empty...";
-			this.cacheLengthNumber.Location = new System.Drawing.Point(149, 82);
-			this.cacheLengthNumber.MaxLength = 32767;
-			this.cacheLengthNumber.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-			this.cacheLengthNumber.Name = "cacheLengthNumber";
-			this.cacheLengthNumber.PasswordChar = '\0';
-			this.cacheLengthNumber.RightToLeft = System.Windows.Forms.RightToLeft.No;
-			this.cacheLengthNumber.ScrollBars = System.Windows.Forms.ScrollBars.None;
-			this.cacheLengthNumber.SelectionLength = 0;
-			this.cacheLengthNumber.SelectionStart = 0;
-			this.cacheLengthNumber.Size = new System.Drawing.Size(391, 23);
-			this.cacheLengthNumber.SpinType = VIBlend.WinForms.Controls.SpinType.None;
-			this.cacheLengthNumber.TabIndex = 13;
-			this.cacheLengthNumber.Text = "1";
-			this.cacheLengthNumber.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			this.cacheLengthNumber.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-			this.cacheLengthNumber.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.STEEL;
-			this.cacheLengthNumber.ValueChanged += new VIBlend.WinForms.Controls.ValueChangedEditorEventHandler(this.cacheLengthNumber_ValueChanged);
+			this.channelListBox.Location = new System.Drawing.Point(7, 96);
+			this.channelListBox.Name = "channelListBox";
+			this.channelListBox.RoundedCornersMaskListItem = ((byte)(15));
+			this.channelListBox.Size = new System.Drawing.Size(516, 176);
+			this.channelListBox.TabIndex = 13;
+			this.channelListBox.Text = "vListBox1";
+			this.channelListBox.VIBlendScrollBarsTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
+			this.channelListBox.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
 			// 
 			// altLabel
 			// 
@@ -443,61 +391,6 @@
 			this.shiftCheckBox.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
 			this.shiftCheckBox.CheckedChanged += new System.EventHandler(this.shiftCheckBox_CheckedChanged);
 			// 
-			// cacheLengthNoteB
-			// 
-			this.cacheLengthNoteB.BackColor = System.Drawing.Color.Transparent;
-			this.cacheLengthNoteB.DisplayStyle = VIBlend.WinForms.Controls.LabelItemStyle.TextOnly;
-			this.cacheLengthNoteB.Ellipsis = false;
-			this.cacheLengthNoteB.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cacheLengthNoteB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-			this.cacheLengthNoteB.ImageAlignment = System.Drawing.ContentAlignment.TopLeft;
-			this.cacheLengthNoteB.Location = new System.Drawing.Point(149, 142);
-			this.cacheLengthNoteB.Multiline = true;
-			this.cacheLengthNoteB.Name = "cacheLengthNoteB";
-			this.cacheLengthNoteB.Size = new System.Drawing.Size(360, 25);
-			this.cacheLengthNoteB.TabIndex = 7;
-			this.cacheLengthNoteB.Text = " ";
-			this.cacheLengthNoteB.TextAlignment = System.Drawing.ContentAlignment.TopLeft;
-			this.cacheLengthNoteB.UseMnemonics = true;
-			this.cacheLengthNoteB.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
-			// 
-			// cacheLengthNoteA
-			// 
-			this.cacheLengthNoteA.BackColor = System.Drawing.Color.Transparent;
-			this.cacheLengthNoteA.DisplayStyle = VIBlend.WinForms.Controls.LabelItemStyle.TextOnly;
-			this.cacheLengthNoteA.Ellipsis = false;
-			this.cacheLengthNoteA.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cacheLengthNoteA.ForeColor = System.Drawing.SystemColors.Control;
-			this.cacheLengthNoteA.ImageAlignment = System.Drawing.ContentAlignment.TopLeft;
-			this.cacheLengthNoteA.Location = new System.Drawing.Point(149, 111);
-			this.cacheLengthNoteA.Multiline = true;
-			this.cacheLengthNoteA.Name = "cacheLengthNoteA";
-			this.cacheLengthNoteA.Size = new System.Drawing.Size(360, 25);
-			this.cacheLengthNoteA.TabIndex = 6;
-			this.cacheLengthNoteA.Text = "Note: this value is in seconds. The output file will range from this value to thi" +
-    "s value times 2 (i.e. 60 seconds to 120 seconds)";
-			this.cacheLengthNoteA.TextAlignment = System.Drawing.ContentAlignment.TopLeft;
-			this.cacheLengthNoteA.UseMnemonics = true;
-			this.cacheLengthNoteA.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
-			// 
-			// cacheLengthLabel
-			// 
-			this.cacheLengthLabel.BackColor = System.Drawing.Color.Transparent;
-			this.cacheLengthLabel.DisplayStyle = VIBlend.WinForms.Controls.LabelItemStyle.TextOnly;
-			this.cacheLengthLabel.Ellipsis = false;
-			this.cacheLengthLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cacheLengthLabel.ForeColor = System.Drawing.SystemColors.Control;
-			this.cacheLengthLabel.ImageAlignment = System.Drawing.ContentAlignment.TopLeft;
-			this.cacheLengthLabel.Location = new System.Drawing.Point(7, 83);
-			this.cacheLengthLabel.Multiline = true;
-			this.cacheLengthLabel.Name = "cacheLengthLabel";
-			this.cacheLengthLabel.Size = new System.Drawing.Size(136, 25);
-			this.cacheLengthLabel.TabIndex = 5;
-			this.cacheLengthLabel.Text = "Cache Length:";
-			this.cacheLengthLabel.TextAlignment = System.Drawing.ContentAlignment.TopLeft;
-			this.cacheLengthLabel.UseMnemonics = true;
-			this.cacheLengthLabel.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
-			// 
 			// captureShortcutLabel
 			// 
 			this.captureShortcutLabel.BackColor = System.Drawing.Color.Transparent;
@@ -563,12 +456,27 @@
 			this.saveSettingsButton.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
 			this.saveSettingsButton.Click += new System.EventHandler(this.saveSettingsButton_Click);
 			// 
+			// aboutButton
+			// 
+			this.aboutButton.AllowAnimations = true;
+			this.aboutButton.BackColor = System.Drawing.Color.Transparent;
+			this.aboutButton.Location = new System.Drawing.Point(12, 285);
+			this.aboutButton.Name = "aboutButton";
+			this.aboutButton.RoundedCornersMask = ((byte)(15));
+			this.aboutButton.Size = new System.Drawing.Size(97, 25);
+			this.aboutButton.TabIndex = 6;
+			this.aboutButton.Text = "About";
+			this.aboutButton.UseVisualStyleBackColor = false;
+			this.aboutButton.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
+			this.aboutButton.Click += new System.EventHandler(this.aboutButton_Click);
+			// 
 			// ConfigEditor
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
 			this.ClientSize = new System.Drawing.Size(671, 320);
+			this.Controls.Add(this.aboutButton);
 			this.Controls.Add(this.cancelButton);
 			this.Controls.Add(this.configTabs);
 			this.Controls.Add(this.saveSettingsButton);
@@ -598,23 +506,19 @@
 		private VIBlend.WinForms.Controls.vLabel captureShortcutLabel;
 		private VIBlend.WinForms.Controls.vButton captureShortcutButton;
 		private Ookii.Dialogs.VistaFolderBrowserDialog outputFolderBrowseDialog;
-		private VIBlend.WinForms.Controls.vLabel cacheLengthLabel;
-		private VIBlend.WinForms.Controls.vLabel cacheLengthNoteA;
-		private VIBlend.WinForms.Controls.vLabel cacheLengthNoteB;
 		private VIBlend.WinForms.Controls.vLabel altLabel;
 		private VIBlend.WinForms.Controls.vLabel ctrlLabel;
 		private VIBlend.WinForms.Controls.vCheckBox altCheckBox;
 		private VIBlend.WinForms.Controls.vLabel shiftLabel;
 		private VIBlend.WinForms.Controls.vCheckBox ctrlCheckBox;
 		private VIBlend.WinForms.Controls.vCheckBox shiftCheckBox;
-		private VIBlend.WinForms.Controls.vNumberEditor cacheLengthNumber;
 		private VIBlend.WinForms.Controls.vButton cancelButton;
 		private VIBlend.WinForms.Controls.vButton saveSettingsButton;
-		private VIBlend.WinForms.Controls.vLabel systemDeviceLabel;
-		private VIBlend.WinForms.Controls.vLabel microphoneDeviceLabel;
-		private System.Windows.Forms.ComboBox microphoneDeviceComboBox;
-		private System.Windows.Forms.ComboBox systemDeviceComboBox;
-		private VIBlend.WinForms.Controls.vButton refreshDevicesButton;
+		private VIBlend.WinForms.Controls.vListBox channelListBox;
+		private VIBlend.WinForms.Controls.vLabel channelsLabel;
+		private VIBlend.WinForms.Controls.vButton deleteChannelButton;
+		private VIBlend.WinForms.Controls.vButton addChannelButton;
+		private VIBlend.WinForms.Controls.vButton aboutButton;
 	}
 }
 
