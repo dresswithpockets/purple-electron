@@ -139,6 +139,7 @@
 			this.fileFormatCombatBox.ValueMember = "";
 			this.fileFormatCombatBox.VIBlendScrollBarsTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
 			this.fileFormatCombatBox.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
+			this.fileFormatCombatBox.Visible = false;
 			this.fileFormatCombatBox.SelectedIndexChanged += new System.EventHandler(this.fileFormatCombatBox_SelectedIndexChanged);
 			// 
 			// outputFormatLAbel
@@ -158,6 +159,7 @@
 			this.outputFormatLAbel.TextAlignment = System.Drawing.ContentAlignment.TopLeft;
 			this.outputFormatLAbel.UseMnemonics = true;
 			this.outputFormatLAbel.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
+			this.outputFormatLAbel.Visible = false;
 			// 
 			// browseButton
 			// 
@@ -298,6 +300,7 @@
 			this.channelListBox.Text = "vListBox1";
 			this.channelListBox.VIBlendScrollBarsTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
 			this.channelListBox.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.NERO;
+			this.channelListBox.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.channelListBox_MouseDoubleClick);
 			// 
 			// altLabel
 			// 
@@ -487,6 +490,7 @@
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Purple Electron - Settings";
 			this.Load += new System.EventHandler(this.ConfigEditor_Load);
+			this.VisibleChanged += new System.EventHandler(this.ConfigEditor_VisibleChanged);
 			this.configTabs.ResumeLayout(false);
 			this.outputTabPage.ResumeLayout(false);
 			this.captureTabPage.ResumeLayout(false);

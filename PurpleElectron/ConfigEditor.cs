@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
@@ -26,7 +27,11 @@ namespace PurpleElectron {
 		private ContextMenu addButtonMenu;
 
 		public ConfigEditor() {
+			Debug.WriteLine("Initializing component");
+
 			InitializeComponent();
+
+			Debug.WriteLine("Setting latest shortcut keys");
 
 			latestShortcutKeys = Config.CaptureShortcut.keys;
 		}
@@ -58,8 +63,6 @@ namespace PurpleElectron {
 			altCheckBox.Checked = Config.CaptureShortcut.alt;
 			latestShortcutKeys = Config.CaptureShortcut.keys;
 			captureShortcutButton.Text = latestShortcutKeys.ToString();
-
-			RefreshDevices();
 			
 			saveSettingsButton.Enabled = false;
 			restartRequired = false;
@@ -103,7 +106,7 @@ namespace PurpleElectron {
 		}
 
 		private void saveSettingsButton_Click(object sender, EventArgs e) {
-			
+			Debug.WriteLine("Attempting save");
 			if (restartRequired) {
 				using (var restartButton = new TaskDialogButton(ButtonType.Custom) {
 					Text = "Restart now",
@@ -155,15 +158,26 @@ namespace PurpleElectron {
 							captureShortcutButton.Text = (latestShortcutKeys = Config.CaptureShortcut.keys).ToString();
 							break;
 					}
-					
 				}
 			}
 			else {
+				Debug.WriteLine("Committing to short save");
 				ShortSave();
 
 				saveSettingsButton.Enabled = false;
 				this.Visible = false;
 			}
+
+			Debug.WriteLine("Restarting enabled capture devices and stopping disabled capture devices");
+			Config.ActiveChannels.ForEach(item => {
+				if (item.enabled) {
+					item.channel.StopCapture();
+					item.channel.StartCapture();
+				}
+				else {
+					item.channel.StopCapture();
+				}
+			});
 		}
 
 		private void altCheckBox_CheckedChanged(object sender, EventArgs e) {
@@ -179,61 +193,35 @@ namespace PurpleElectron {
 		}
 
 		private void systemDeviceComboBox_SelectedIndexChanged(object sender, EventArgs e) {
-			restartRequired = true;
 			saveSettingsButton.Enabled = true;
 		}
 
 		private void microphoneDeviceComboBox_SelectedIndexChanged(object sender, EventArgs e) {
-			restartRequired = true;
 			saveSettingsButton.Enabled = true;
-		}
-
-		private void refreshDevicesButton_Click(object sender, EventArgs e) {
-			RefreshDevices();
-		}
-
-		private void RefreshDevices() {
-			/*systemDeviceComboBox.Items.Clear();
-			microphoneDeviceComboBox.Items.Clear();
-
-			using (var deviceEnum = new MMDeviceEnumerator())
-			using (var captureDevices = deviceEnum.EnumAudioEndpoints(DataFlow.Capture, DeviceState.Active))
-			using (var renderDevices = deviceEnum.EnumAudioEndpoints(DataFlow.Render, DeviceState.Active)) {
-
-				Debug.WriteLine("using: " + Config.CaptureDevice.FriendlyName);
-				
-				foreach (var device in captureDevices) {
-					microphoneDeviceComboBox.Items.Add(new DeviceItem(device));
-				}
-				
-				foreach (var device in renderDevices) {
-					systemDeviceComboBox.Items.Add(new DeviceItem(device));
-				}
-
-				for (int i = 0; i < microphoneDeviceComboBox.Items.Count; i++) {
-					if ((microphoneDeviceComboBox.Items[i] as DeviceItem).Device == Config.CaptureDevice) {
-						microphoneDeviceComboBox.SelectedIndex = i;
-						break;
-					}
-				}
-
-				Debug.WriteLine(Config.RenderDevice.FriendlyName);
-				for (int i = 0; i < systemDeviceComboBox.Items.Count; i++) {
-					var item = (systemDeviceComboBox.Items[i] as DeviceItem);
-					Debug.WriteLine(item.Device.FriendlyName);
-                    if (item.Device == Config.RenderDevice) {
-						systemDeviceComboBox.SelectedIndex = i;
-						Debug.WriteLine("Found!");
-						break;
-					}
-				}
-			}*/
 		}
 
 		private void ShortSave() {
 
+			Debug.WriteLine("Saving editor preferences to config");
 			Config.SavePath = new System.IO.DirectoryInfo(outputFolderTextBox.Text);
 			Config.CaptureShortcut = new KeyShortcut(latestShortcutKeys, shiftCheckBox.Checked, ctrlCheckBox.Checked, altCheckBox.Checked);
+
+			// TODO: remember what I was going to do here
+
+			var addedChannels = channelListBox.Items.Select(item => (ChannelItem)item.Tag);
+			var channelsArray = Config.ActiveChannels.ToArray();
+			foreach (var add_this in addedChannels.Except(channelsArray)) {
+				Debug.WriteLine("Adding channel to active channels");
+				Config.ActiveChannels.Add(add_this);
+			}
+			Config.ActiveChannels.RemoveAll(item => {
+				var ret = !addedChannels.Contains(item);
+				if (ret) {
+					Debug.WriteLine("Removing channel from active channels");
+					item.channel.Dispose();
+				}
+				return ret;
+			});
 
 			Config.SaveConfig();
 		}
@@ -265,22 +253,63 @@ namespace PurpleElectron {
 				}
 			}
 			else if (e.KeyCode == Config.CaptureShortcut.keys && e.Modifiers == Config.CaptureShortcut.modifiers) {
-				context.Capture(this, null);
-				e.Handled = true;
+				Debug.WriteLine("Saving");
+				context.SaveData();
 			}
 		}
 
 		private void aboutButton_Click(object sender, EventArgs e) {
-			using (var about = new AboutPurpleElectron()) {
-				about.Show(this);
-			}
+			var about = new AboutPurpleElectron();
+			about.ShowDialog(this);
 		}
 
 		private void AddChannel(ChannelTypeItem channel) {
-			// TODO: Actually add the channel to the list of active channels
+			Debug.WriteLine("Adding channel");
+			var typeCount = 0;
+			foreach (var listItem in channelListBox.Items) {
+				if ((listItem.Tag as ChannelItem).channel.GetType() == channel.objectType) typeCount++;
+			}
+
+			var item = new ChannelItem(
+				(IChannel)Activator.CreateInstance(
+					channel.objectType,
+					new[] {
+						channel.channelTypeName + (typeCount == 0 ? "" : " " + typeCount.ToString()),
+						(object)OutputFormat.WAV
+					})
+				);
+
+			channelListBox.Items.Add(new VIBlend.WinForms.Controls.ListItem {
+				Tag = item,
+				Text = item.ToString()
+			});
+
+			saveSettingsButton.Enabled = true;
+		}
+
+		private void UpdateChannels() {
+			Debug.WriteLine("Updating channels");
+
+			var addedChannels = channelListBox.Items.Select(item => (ChannelItem)item.Tag);
+			foreach (var remove_this in addedChannels.Except(Config.ActiveChannels)) {
+				var itemsToRemove = channelListBox.Items.Where(item => item.Tag == remove_this);
+				foreach (var item in itemsToRemove) {
+					channelListBox.Items.Remove(item);
+				}
+			}
+			foreach (var add_this in Config.ActiveChannels.Except(addedChannels)) {
+				var itemsToAdd = Config.ActiveChannels.Where(item => !addedChannels.Contains(add_this));
+				foreach (var item in itemsToAdd) {
+					channelListBox.Items.Add(new VIBlend.WinForms.Controls.ListItem {
+						Tag = item,
+						Text = item.ToString()
+					});
+				}
+			}
 		}
 
 		private void addChannelButton_Click(object sender, EventArgs e) {
+			
 			var vals = Config.RegisteredChannels.Values.ToArray();
 			var channelTypes = new MenuItem[vals.Length];
             for (int i = 0; i < vals.Length; i++) {
@@ -293,7 +322,24 @@ namespace PurpleElectron {
 		}
 
 		private void deleteChannelButton_Click(object sender, EventArgs e) {
+			if (channelListBox.SelectedIndex > -1 && channelListBox.SelectedIndex < channelListBox.Items.Count) {
+				channelListBox.Items.RemoveAt(channelListBox.SelectedIndex);
+				saveSettingsButton.Enabled = true;
+			}
+		}
 
+		private void ConfigEditor_VisibleChanged(object sender, EventArgs e) {
+			if (Visible) {
+				UpdateChannels();
+			}
+		}
+
+		private void channelListBox_MouseDoubleClick(object sender, MouseEventArgs e) {
+			if (channelListBox.SelectedItem != null) {
+
+				saveSettingsButton.Enabled = (channelListBox.SelectedItem.Tag as ChannelItem).channel.ShowPropertiesEditor();
+				channelListBox.SelectedItem.Text = (channelListBox.SelectedItem.Tag as ChannelItem).channel.channelName;
+            }
 		}
 	}
 }
