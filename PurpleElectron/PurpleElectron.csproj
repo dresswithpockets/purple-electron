@@ -161,6 +161,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\icon.ico" />
+    <Content Include="Resources\MINUS.png" />
+    <Content Include="Resources\PLUS.png" />
     <None Include="Resources\icon1.png" />
   </ItemGroup>
   <ItemGroup>

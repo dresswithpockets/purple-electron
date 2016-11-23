@@ -246,13 +246,13 @@
 			// 
 			this.deleteChannelButton.AllowAnimations = true;
 			this.deleteChannelButton.BackColor = System.Drawing.Color.Transparent;
+			this.deleteChannelButton.Image = ((System.Drawing.Image)(resources.GetObject("deleteChannelButton.Image")));
 			this.deleteChannelButton.Location = new System.Drawing.Point(529, 125);
 			this.deleteChannelButton.Name = "deleteChannelButton";
 			this.deleteChannelButton.RoundedCornersMask = ((byte)(15));
 			this.deleteChannelButton.RoundedCornersRadius = 0;
 			this.deleteChannelButton.Size = new System.Drawing.Size(30, 30);
 			this.deleteChannelButton.TabIndex = 15;
-			this.deleteChannelButton.Text = "➖";
 			this.deleteChannelButton.UseVisualStyleBackColor = false;
 			this.deleteChannelButton.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.OFFICE2010SILVER;
 			this.deleteChannelButton.Click += new System.EventHandler(this.deleteChannelButton_Click);
@@ -261,13 +261,13 @@
 			// 
 			this.addChannelButton.AllowAnimations = true;
 			this.addChannelButton.BackColor = System.Drawing.Color.Transparent;
+			this.addChannelButton.Image = ((System.Drawing.Image)(resources.GetObject("addChannelButton.Image")));
 			this.addChannelButton.Location = new System.Drawing.Point(529, 96);
 			this.addChannelButton.Name = "addChannelButton";
 			this.addChannelButton.RoundedCornersMask = ((byte)(15));
 			this.addChannelButton.RoundedCornersRadius = 0;
 			this.addChannelButton.Size = new System.Drawing.Size(30, 30);
 			this.addChannelButton.TabIndex = 14;
-			this.addChannelButton.Text = "➕";
 			this.addChannelButton.UseVisualStyleBackColor = false;
 			this.addChannelButton.VIBlendTheme = VIBlend.Utilities.VIBLEND_THEME.OFFICE2010SILVER;
 			this.addChannelButton.Click += new System.EventHandler(this.addChannelButton_Click);
