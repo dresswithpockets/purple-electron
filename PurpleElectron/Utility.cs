@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 
 using CSCore.CoreAudioAPI;
+using System.Diagnostics;
 
 namespace PurpleElectron {
 	internal class Utility {
@@ -92,10 +93,12 @@ namespace PurpleElectron {
 
 		public static DataFlow GetDataFlow(MMDevice device) {
 
+			Debug.Assert(!device.IsDisposed, "lmao how");
+
 			using (var enumerator = new MMDeviceEnumerator()) 
 			using (var devices = enumerator.EnumAudioEndpoints(DataFlow.Capture, DeviceState.Active)) {
 				foreach (var dev in devices) {
-					if (dev.DeviceID == device.DeviceID)
+					if (dev.DeviceID == device?.DeviceID)
 						return DataFlow.Capture;
 				}
 			}
