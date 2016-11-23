@@ -16,52 +16,10 @@ namespace PurpleElectron {
 
 		internal const string CONFIG_PATH = "config.json";
 		internal const string TEMP = "temp/";
-		internal const string TEMP_CAPTURE_A = "capture_a.wav";
-		internal const string TEMP_CAPTURE_B = "capture_b.wav";
-		internal const string TEMP_RENDER_A = "render_a.wav";
-		internal const string TEMP_RENDER_B = "render_b.wav";
 
 		internal const string GUID = "1F923A3E-B532-40A6-8065-D73D597996E1";
 
-		internal static string render_a {
-			get {
-				return TEMP + TEMP_RENDER_A;
-			}
-		}
-		internal static string render_b {
-			get {
-				return TEMP + TEMP_RENDER_B;
-			}
-		}
-		internal static string capture_a {
-			get {
-				return TEMP + TEMP_CAPTURE_A;
-			}
-		}
-		internal static string capture_b {
-			get {
-				return TEMP + TEMP_CAPTURE_B;
-			}
-		}
-
-		public static KeyShortcut CaptureShortcut = new KeyShortcut(Keys.F6, false, false, true);
-
-		public static MMDevice RenderDevice = GetDefaultRenderDevice();
-		public static MMDevice CaptureDevice = GetDefaultCaptureDevice();
-
-		/// <summary>
-		/// The length of each audio cache file.
-		/// 
-		/// In Seconds
-		/// </summary>
-		public static int CacheLength = 60;
-
-		public static DirectoryInfo SavePath = DefaultDirectoryInfo;
-		public static string SaveNameFormat = "MM-dd-yyyy - hh-mm-ss";
-
-		public static Dictionary<ChannelType, ChannelTypeItem> RegisteredChannels = new Dictionary<ChannelType, ChannelTypeItem>();
-
-		private static DirectoryInfo DefaultDirectoryInfo {
+		private static DirectoryInfo DefaultSaveDirectoryInfo {
 			get {
 				if (!Directory.Exists("save/")) return Directory.CreateDirectory("save/");
 				return new DirectoryInfo("save/");
@@ -79,11 +37,10 @@ namespace PurpleElectron {
 				return enumerator.EnumAudioEndpoints(DataFlow.Render, DeviceState.Active);
 			}
 		}
-		
+
 		public static MMDevice GetDefaultCaptureDevice() {
 			using (MMDeviceEnumerator enumerator = new MMDeviceEnumerator()) {
 				var dev = enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Multimedia);
-				//Debug.WriteLine("Microphone: " + dev.FriendlyName);
 				return dev;
 			}
 		}
@@ -94,6 +51,18 @@ namespace PurpleElectron {
 			}
 		}
 
+		public static KeyShortcut CaptureShortcut = new KeyShortcut(Keys.F6, false, false, true);
+		
+		public static int CacheLength = 60;
+
+		public static DirectoryInfo SavePath = DefaultSaveDirectoryInfo;
+		public static string SaveNameFormat = "MM-dd-yyyy - HH-mm-ss";
+
+		public static MMDevice RenderDevice = GetDefaultRenderDevice();
+		public static MMDevice CaptureDevice = GetDefaultCaptureDevice();
+		public static Dictionary<ChannelType, ChannelTypeItem> RegisteredChannels = new Dictionary<ChannelType, ChannelTypeItem>();
+		public static List<ChannelItem> ActiveChannels = new List<ChannelItem>();
+
 		public static void RegisterChannelType(string name, ChannelType channelType, Type type) {
 			if (!RegisteredChannels.ContainsKey(channelType)) {
 				RegisteredChannels.Add(channelType, new ChannelTypeItem(name, channelType, type));
@@ -101,20 +70,25 @@ namespace PurpleElectron {
 		}
 
 		public static void SaveConfig() {
+			Debug.WriteLine("Saving config");
 			var root = new JSONClass();
 
+			Debug.WriteLine("Saving capture shortcut, cache length, and save path");
 			var capture_shortcut = new JSONClass();
 			capture_shortcut["keys"].AsInt = (int)CaptureShortcut.keys;
 			capture_shortcut["shift"].AsBool = CaptureShortcut.shift;
 			capture_shortcut["ctrl"].AsBool = CaptureShortcut.ctrl;
 			capture_shortcut["alt"].AsBool = CaptureShortcut.alt;
 
-			root.Add("capture_shortcut", capture_shortcut);
-			root.Add("cache_length", CacheLength.ToString());
+			root["capture_shortcut"] = capture_shortcut;
+			root["cache_length"].AsInt = CacheLength;
+			root["save_path"] = SavePath.FullName;
 
-			root.Add("save_path", SavePath.FullName);
-			root.Add("capture_id", CaptureDevice.DeviceID);
-			root.Add("render_id", RenderDevice.DeviceID);
+			Debug.WriteLine("Saving channels");
+
+			var channels = new JSONArray();
+			ActiveChannels.ForEach(channel => channels.Add(channel.ToJSON()));
+			root["channels"] = channels;
 
 			File.WriteAllText(CONFIG_PATH, root.ToString());
 		}
@@ -133,30 +107,12 @@ namespace PurpleElectron {
 				CacheLength = root["cache_length"].AsInt;
 				SavePath = new DirectoryInfo(root["save_path"]);
 
-				var cid = root["capture_id"];
-				var rid = root["render_id"];
+				var channels = root["channels"];
 
-				using (var deviceEnum = new MMDeviceEnumerator())
-				using (var capture_devices = deviceEnum.EnumAudioEndpoints(DataFlow.Capture, DeviceState.Active))
-				using (var render_devices = deviceEnum.EnumAudioEndpoints(DataFlow.Render, DeviceState.Active)) {
-					
-					foreach (var device in capture_devices) {
-						if (device.DeviceID == cid) {
-							CaptureDevice = device;
-							break;
-						}
-					}
-					foreach (var device in render_devices) {
-						if (device.DeviceID == rid) {
-							RenderDevice = device;
-						}
-					}
-
-					if (CaptureDevice == null) {
-						CaptureDevice = GetDefaultCaptureDevice();
-					}
-					if (RenderDevice == null) {
-						RenderDevice = GetDefaultRenderDevice();
+				if (channels != null) {
+					foreach (var channel in channels.AsArray) {
+						Debug.WriteLine("Reading channel");
+						ActiveChannels.Add(new ChannelItem((JSONClass)channel));
 					}
 				}
 			}
@@ -203,18 +159,40 @@ namespace PurpleElectron {
 
 	public class ChannelItem {
 
-		public bool Enabled;
-		public IChannel Channel { get; }
+		public bool enabled;
+		public ChannelType channelType;
+		public IChannel channel { get; }
 
 		public ChannelItem(IChannel channel) {
-			Channel = channel;
-			Enabled = true;
+			this.channel = channel;
+			channelType = channel.channelType;
+			enabled = true;
+		}
+
+		public ChannelItem(JSONClass json) {
+			var chan = (JSONClass)json[nameof(channel)];
+
+			enabled = json[nameof(enabled)].AsBool;
+			channelType = (ChannelType)json[nameof(channelType)].AsInt;
+			channel = (IChannel)Activator.CreateInstance(Config.RegisteredChannels[channelType].objectType, new[] { chan });
 		}
 
 		public override string ToString() {
-			var enable = Enabled ? "(Enabled) " : "(Disabled) ";
+			//var enable = enabled ? "(Enabled) " : "(Disabled) ";
 
-			return enable + Channel.channelName;
+			//return enable + channel.channelName;
+			// TODO: handle this shit
+			return channel.channelName;
+		}
+
+		public JSONNode ToJSON() {
+			var node = new JSONClass();
+
+			node[nameof(enabled)].AsBool = enabled;
+			node[nameof(channelType)].AsInt = (int)channel.channelType;
+			node[nameof(channel)] = channel.ToJSON();
+
+			return node;
 		}
 	}
 
