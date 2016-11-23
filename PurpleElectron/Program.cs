@@ -16,6 +16,7 @@ namespace PurpleElectron {
 		/// <summary>
 		/// The main entry point for the application.
 		/// </summary>
+		/// <param name="args">Command line arguments passed at execution.</param>
 		[STAThread]
 		static void Main(string[] args) {
 
