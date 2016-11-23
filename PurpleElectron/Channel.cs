@@ -13,23 +13,28 @@ using CSCore.SoundIn;
 using CSCore.Streams;
 using CSCore.Win32;
 
+using SimpleJSON;
+using System.Diagnostics;
+
 namespace PurpleElectron {
 
+	// TODO: INCOMPLETE. SEE TRELLO BOARD
 	public enum ChannelType {
 		DeviceCapture,
-		ProcessCapture, // TODO: INCOMPLETE. SEE TRELLO BOARD
-		Gate // TODO: INCOMPLETE. SEE TRELLO BOARD
+		ProcessCapture,
+		Gate
 	}
-	
+
+	// TODO: UNSUPPORTED. SEE TRELLO BOARD
 	public enum OutputFormat {
 		WAV,
-		WMA, // TODO: UNSUPPORTED. SEE TRELLO BOARD
-		RAW, // TODO: UNSUPPORTED. SEE TRELLO BOARD
-		AIFF, // TODO: UNSUPPORTED. SEE TRELLO BOARD
-		DDP, // TODO: UNSUPPORTED. SEE TRELLO BOARD
-		FLAC, // TODO: UNSUPPORTED. SEE TRELLO BOARD
-		MP3, // TODO: UNSUPPORTED. SEE TRELLO BOARD
-		AAC // TODO: UNSUPPORTED. SEE TRELLO BOARD
+		WMA, 
+		RAW, 
+		AIFF, 
+		DDP, 
+		FLAC, 
+		MP3, 
+		AAC 
 	}
 
 	public interface IChannel {
@@ -38,14 +43,18 @@ namespace PurpleElectron {
 		ChannelType channelType { get; }
 		OutputFormat outputFormat { get; set; }
 		int cacheLength { get; set; }
+		bool storeInMemoryUntilSave { get; set; }
 		void StartCapture();
 		void StopCapture();
+		bool ShowPropertiesEditor();
 		void SaveData();
+		JSONNode ToJSON();
+		void Dispose();
 	}
 
 	public class DeviceCaptureChannel : IChannel, IDisposable {
 
-		public string channelName { get; }
+		public string channelName { get; private set; }
 		public string channelFolder {
 			get {
 				return Config.TEMP + channelName + "/";
@@ -70,16 +79,18 @@ namespace PurpleElectron {
 		public MMDevice channelDevice;
 		public WaveWriter channelWriterA;
 		public WaveWriter channelWriterB;
-		public FileStream channelStreamA;
-		public FileStream channelStreamB;
-		public List<byte> channelMemoryA;
-		public List<byte> channelMemoryB;
+		public FileStream channelStreamA { get; set; }
+		public FileStream channelStreamB { get; set; }
+		public List<byte> channelMemoryA = new List<byte>();
+		public List<byte> channelMemoryB = new List<byte>();
 
 		public List<MMDevice> deviceList;
 
-		public bool canWrite;
+		public bool canWrite = true;
 		public int currentFile;
 		public Timer fileTimer;
+
+		public DeviceCaptureProperties propertiesWindow;
 
 		/// <summary>
 		/// This will prompt the Wasapi object to begin capturing from the primaryDevice.
@@ -88,12 +99,15 @@ namespace PurpleElectron {
 		/// and will reinitialize the Wasapi object.
 		/// </summary>
 		public void StartCapture() {
-			if (channelCapture?.RecordingState == RecordingState.Recording) StopCapture();
+			Debug.WriteLine("Starting capture for " + channelName);
+
+			StopCapture();
 
 			var flow = Utility.GetDataFlow(channelDevice);
 			switch (flow) {
 				case DataFlow.Capture:
 
+					Debug.WriteLine("Using WasapiCapture for device: " + channelDevice.FriendlyName);
 					channelCapture = new WasapiCapture {
 						Device = channelDevice
 					};
@@ -101,6 +115,7 @@ namespace PurpleElectron {
 					break;
 				case DataFlow.Render:
 
+					Debug.WriteLine("Using WasapiLoopbackCapture for device: " + channelDevice.FriendlyName);
 					channelCapture = new WasapiLoopbackCapture {
 						Device = channelDevice
 					};
@@ -108,6 +123,7 @@ namespace PurpleElectron {
 					break;
 			}
 
+			Debug.WriteLine("Initializing capture device");
 			channelCapture.Initialize();
 
 			fileTimer = new Timer(cacheLength * 1000);
@@ -144,15 +160,20 @@ namespace PurpleElectron {
 				};
 			}
 			else {
-				CheckTempDirectory();
+				Debug.WriteLine("Ensuring proper temp directories exist");
+				CheckTempDirectory(true);
 
+				Debug.WriteLine("Opening streams to: {0} and {1}", channelFileA, channelFileB);
 				channelStreamA = File.Create(channelFileA);
 				channelStreamB = File.Create(channelFileB);
 
+				Debug.WriteLine("Opening writers for those files.");
 				channelWriterA = new WaveWriter(channelStreamA, channelCapture.WaveFormat);
 				channelWriterB = new WaveWriter(channelStreamB, channelCapture.WaveFormat);
 
+				Debug.WriteLine("Implementing data available event.");
 				channelCapture.DataAvailable += (s, e) => {
+					
 					while (!canWrite) ;
 
 					switch (currentFile) {
@@ -164,28 +185,31 @@ namespace PurpleElectron {
 							break;
 					}
 				};
-
-
+				
+				Debug.WriteLine("Implementing file swapper");
 				fileTimer.Elapsed += (s, e) => {
 					if (!canWrite) return;
 
 					canWrite = false;
 
+					Debug.WriteLine("Swapping files");
+
 					switch (currentFile) {
 						case 0:
 							currentFile = 1;
 
-							CheckTempDirectory();
+							CheckTempDirectory(false);
 
 							if (File.Exists(channelFileB)) {
+								channelStreamB.Close();
 								channelStreamB.Dispose();
 								File.Delete(channelFileB);
 							}
 							channelStreamB = File.Create(channelFileB);
 
-							if (!channelWriterB.IsDisposed && !channelWriterB.IsDisposing) {
+							/*if (!channelWriterB.IsDisposed && !channelWriterB.IsDisposing) {
 								channelWriterB.Dispose();
-							}
+							}*/
 
 							channelWriterB = new WaveWriter(channelStreamB, channelCapture.WaveFormat);
 
@@ -193,17 +217,18 @@ namespace PurpleElectron {
 						case 1:
 							currentFile = 0;
 
-							CheckTempDirectory();
+							CheckTempDirectory(false);
 
 							if (File.Exists(channelFileA)) {
+								channelStreamA.Close();
 								channelStreamA.Dispose();
 								File.Delete(channelFileA);
 							}
 							channelStreamA = File.Create(channelFileA);
 
-							if (!channelWriterA.IsDisposed && !channelWriterA.IsDisposing) {
+							/*if (!channelWriterA.IsDisposed && !channelWriterA.IsDisposing) {
 								channelWriterA.Dispose();
-							}
+							}*/
 
 							channelWriterA = new WaveWriter(channelStreamA, channelCapture.WaveFormat);
 
@@ -214,24 +239,71 @@ namespace PurpleElectron {
 				};
 			}
 
+			Debug.WriteLine("Starting the timer swapper");
 			fileTimer.AutoReset = true;
 			fileTimer.Start();
 
+			Debug.WriteLine("Starting the capture device stream");
 			channelCapture.Start();
+
+			Debug.WriteLine("Started the capture device stream");
 		}
 
 		public void StopCapture() {
 
-			if (channelCapture?.RecordingState == RecordingState.Recording) channelCapture.Stop();
+			if (channelCapture?.RecordingState == RecordingState.Recording)
+				Cleanup();
+        }
+
+		public bool ShowPropertiesEditor() {
+			var propertiesChanged = false;
+
+			var result = propertiesWindow.ShowDialog();
+			if (result == System.Windows.Forms.DialogResult.OK) {
+				var newChannelName = propertiesWindow.GetChannelName();
+				var newOutputFormat = propertiesWindow.GetOutputFormat();
+				var newCacheLength = propertiesWindow.GetCacheLength();
+				var newStoreInMemoryUntilSave = propertiesWindow.GetBufferMethod();
+				var device = propertiesWindow.GetDevice();
+
+				if (newChannelName != channelName) {
+					channelName = newChannelName;
+					propertiesChanged = true;
+				}
+				if (newOutputFormat != outputFormat) {
+					outputFormat = newOutputFormat;
+					propertiesChanged = true;
+				}
+				if (newCacheLength != cacheLength) {
+					cacheLength = newCacheLength;
+					propertiesChanged = true;
+				}
+				if (newStoreInMemoryUntilSave != storeInMemoryUntilSave) {
+					storeInMemoryUntilSave = newStoreInMemoryUntilSave;
+					propertiesChanged = true;
+				}
+				if (channelDevice.DeviceID != device.DeviceID) {
+					StopCapture();
+					channelDevice = device;
+					StartCapture();
+
+					propertiesChanged = true;
+				}
+			}
+
+			return propertiesChanged;
 		}
 
 		public void SaveData() {
 			// TODO: Add support for other formats (see: OutputFormat)
 
-			var dataA = (currentFile == 0 ? channelMemoryB : channelMemoryA).ToArray();
-			var dataB = (currentFile == 1 ? channelMemoryB : channelMemoryA).ToArray();
+			byte[] dataA, dataB;
 
-			if (!storeInMemoryUntilSave) {
+			if (storeInMemoryUntilSave) {
+				dataA = (currentFile == 0 ? channelMemoryB : channelMemoryA).ToArray();
+				dataB = (currentFile == 1 ? channelMemoryB : channelMemoryA).ToArray();
+			}
+			else {
 				var bytesA = Utility.ReadToEnd((currentFile == 0) ? channelStreamB : channelStreamA);
 				var bytesB = Utility.ReadToEnd((currentFile == 1) ? channelStreamB : channelStreamA);
 
@@ -239,91 +311,125 @@ namespace PurpleElectron {
 				dataB = bytesB.Skip(44).ToArray();
 			}
 
-			using (var writer = new WaveWriter(Config.SavePath.FullName + "/" + DateTime.Now.ToString(Config.SaveNameFormat) + ".wav", channelCapture.WaveFormat)) {
+			var saveDirectory = Config.SavePath.FullName + "/" + channelName + "/";
+			if (!Directory.Exists(saveDirectory)) Directory.CreateDirectory(saveDirectory);
+            using (var writer = new WaveWriter(saveDirectory + DateTime.Now.ToString(Config.SaveNameFormat) + ".wav", channelCapture.WaveFormat)) {
 				writer.Write(dataA, 0, dataA.Length);
 				writer.Write(dataB, 0, dataB.Length);
 			}
-
-			/*var chunk1_size = 16;
-			var format = (short)channelDevice.DeviceFormat.WaveFormatTag;
-
-			var channels = (short)channelDevice.DeviceFormat.Channels;
-			var rate = channelDevice.DeviceFormat.SampleRate;
-			var byteRate = channelDevice.DeviceFormat.BytesPerSecond;
-			var align = (short)channelDevice.DeviceFormat.BlockAlign;
-			var bitsPerSample = (short)channelDevice.DeviceFormat.BitsPerSample;
-
-			var lengthA = dataA.Length;
-			var lengthB = dataB.Length;
-
-			// We're doing hardcore byte concatenation since the output
-			// temp files (a.wav and b.wav) are both uncompressed raw data.
-			//
-			// ... when more than WAV is introduced, we'll have to do this for all of the supported
-			// file types.
-			using (var file = File.Create(Config.SavePath.FullName + "/" + DateTime.Now.ToString(Config.SaveNameFormat) + ".wav"))
-			using (BinaryWriter bw = new BinaryWriter(file)) {
-				bw.Write(Encoding.ASCII.GetBytes("RIFF")); // chunk id
-				bw.Write(4 + (8 + chunk1_size) + (8 + lengthA + lengthB)); // chunk size
-				bw.Write(Encoding.ASCII.GetBytes("WAVE")); // format
-				bw.Write(Encoding.ASCII.GetBytes("fmt ")); // sub chunk 1 id
-				bw.Write(chunk1_size); // sub chunk 1 size
-				bw.Write(format); // audio format
-				bw.Write(channels); // num channels
-				bw.Write(rate); // sample rate
-				bw.Write(byteRate); // byte rate
-				bw.Write(align); // block align
-				bw.Write(bitsPerSample); // bits per sample
-				bw.Write(Encoding.ASCII.GetBytes("data")); // sub chunk 2 id
-				bw.Write(lengthA + lengthB); // sub chunk 2 size
-				bw.Write(dataA); // first part of Data
-				bw.Write(dataB); // last part of Data
-
-				bw.Flush();
-				bw.Close();
-			}*/
 		}
 
 		public DeviceCaptureChannel(string name, OutputFormat fmt = OutputFormat.WAV) {
 			channelName = name;
 			outputFormat = fmt;
+			cacheLength = 60; // default cache length, for now
 			using (MMDeviceEnumerator enumerator = new MMDeviceEnumerator()) {
-				channelDevice = enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Multimedia);
+				channelDevice = (MMDevice)enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
 
 				deviceList = new List<MMDevice>(enumerator.EnumAudioEndpoints(DataFlow.All, DeviceState.Active));
 			}
+			
+			Debug.WriteLine("Populating properties window");
+			propertiesWindow = new DeviceCaptureProperties {
+				Visible = false
+			};
+			propertiesWindow.Populate(this);
 		}
 
-		public void CheckTempDirectory() {
+		public DeviceCaptureChannel(JSONClass json) {
+
+			channelName = json[nameof(channelName)];
+			outputFormat = (OutputFormat)json[nameof(outputFormat)].AsInt;
+			cacheLength = json[nameof(cacheLength)].AsInt;
+			storeInMemoryUntilSave = json[nameof(storeInMemoryUntilSave)].AsBool;
+
+			var id = json[nameof(channelDevice.DeviceID)];
+			using (var enumerator = new MMDeviceEnumerator()) {
+				deviceList = new List<MMDevice>(enumerator.EnumAudioEndpoints(DataFlow.All, DeviceState.Active));
+				foreach (var device in deviceList) {
+					if (device.DeviceID == id) {
+						channelDevice = device;
+						break;
+					}
+				}
+
+				if (channelDevice == null) {
+					channelDevice = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+				}
+			}
+
+			cacheLength = 60; // default cache length, for now
+
+			Debug.WriteLine("Populating properties window");
+			propertiesWindow = new DeviceCaptureProperties {
+				Visible = false
+			};
+			propertiesWindow.Populate(this);
+		}
+
+		public void CheckTempDirectory(bool delete) {
+			Debug.WriteLine("Checking temp directory");
 			// Make sure we have a place to house our temp folder
 			if (!Directory.Exists(Config.TEMP)) Directory.CreateDirectory(Config.TEMP);
 			// the channel's temp folder, which contains the stream files for this channel
 			if (!Directory.Exists(channelFolder)) Directory.CreateDirectory(channelFolder);
-			else {
+			else if (delete) {
 				if (File.Exists(channelFileA)) File.Delete(channelFileA);
 				if (File.Exists(channelFileB)) File.Delete(channelFileB);
 			}
+			Debug.WriteLine("Checked temp directory");
 		}
-		
+
+		public JSONNode ToJSON() {
+			var node = new JSONClass();
+
+			node[nameof(channelName)] = channelName;
+			node[nameof(channelType)].AsInt = (int)channelType;
+			node[nameof(outputFormat)].AsInt = (int)outputFormat;
+			node[nameof(cacheLength)].AsInt = cacheLength;
+			node[nameof(storeInMemoryUntilSave)].AsBool = storeInMemoryUntilSave;
+			node[nameof(channelDevice.DeviceID)] = channelDevice.DeviceID;
+
+			return node;
+		}
+
+		public void Cleanup() {
+			channelMemoryA?.Clear();
+			channelMemoryB?.Clear();
+
+			channelWriterA?.Dispose();
+			channelWriterB?.Dispose();
+
+			channelStreamA?.Dispose();
+			channelStreamB?.Dispose();
+
+			channelCapture?.Dispose();
+
+			fileTimer?.Stop();
+			fileTimer?.Dispose();
+		}
+
 		public void Dispose() {
 			
-			channelMemoryA.Clear();
-			channelMemoryB.Clear();
+			channelMemoryA?.Clear();
+			channelMemoryB?.Clear();
 
-			channelWriterA.Dispose();
-			channelWriterB.Dispose();
+			channelWriterA?.Dispose();
+			channelWriterB?.Dispose();
 
-			channelStreamA.Dispose();
-			channelStreamB.Dispose();
+			channelStreamA?.Dispose();
+			channelStreamB?.Dispose();
 
-			channelCapture.Dispose();
-			channelDevice.Dispose();
+			channelCapture?.Dispose();
+			channelDevice?.Dispose();
 
-			deviceList.ForEach(device => device.Dispose());
-			deviceList.Clear();
+			deviceList?.ForEach(device => device.Dispose());
+			deviceList?.Clear();
 
-			fileTimer.Stop();
-			fileTimer.Dispose();
+			fileTimer?.Stop();
+			fileTimer?.Dispose();
+
+			propertiesWindow?.Dispose();
 
 			GC.SuppressFinalize(this);
 		}
